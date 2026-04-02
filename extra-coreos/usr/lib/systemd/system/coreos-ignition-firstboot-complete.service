@@ -1,0 +1,23 @@
+[Unit]
+Description=CoreOS Mark Ignition Boot Complete
+Documentation=https://docs.fedoraproject.org/en-US/fedora-coreos/
+ConditionKernelCommandLine=ignition.firstboot
+ConditionPathExists=!/run/ostree-live
+# This condition is required for cases where a soft-reboot is issued on the
+# firstboot. Soft reboot do not change the kernel or its command-line arguments,
+# which would cause this service to fail after the soft-reboot completes.
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# The MountFlags=slave is so we remount /boot temporarily writable;
+# see https://github.com/ostreedev/ostree/issues/1265 for the bigger picture.
+# This option creates a new mount namespace; from the point of view of
+# everything else, /boot stays readonly. We only have a transient writable mount
+# for the lifetime of the unit.
+MountFlags=slave
+ExecStart=/usr/libexec/coreos-ignition-firstboot-complete
+
+[Install]
+# Part of basic.target so this happens early on in firstboot
+WantedBy=basic.target
